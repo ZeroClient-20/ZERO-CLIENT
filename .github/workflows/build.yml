@@ -6,6 +6,7 @@ on:
     paths:
       - 'ZERO-Client-1.8.9-LegacyFabric-source.zip'
       - '.github/workflows/build.yml'
+      - 'patches/**'
   workflow_dispatch:
 
 permissions:
@@ -35,6 +36,15 @@ jobs:
           unzip -q ZERO-Client-1.8.9-LegacyFabric-source.zip -d source
           echo "Extracted Gradle project files:"
           find source -type f \( -name 'settings.gradle*' -o -name 'build.gradle*' -o -name 'gradlew' \) -print
+
+      - name: Apply source compatibility patches
+        run: |
+          PROJECT_DIR="$(find source -type f -name build.gradle.kts -print -quit | xargs dirname)"
+          test -n "$PROJECT_DIR"
+          mkdir -p "$PROJECT_DIR/src/main/java/dev/zero/client/mixin"
+          cp patches/ZeroClient.java "$PROJECT_DIR/src/main/java/dev/zero/client/ZeroClient.java"
+          cp patches/MinecraftTickMixin.java "$PROJECT_DIR/src/main/java/dev/zero/client/mixin/MinecraftTickMixin.java"
+          cp patches/zero-client.mixins.json "$PROJECT_DIR/src/main/resources/zero-client.mixins.json"
 
       - name: Upload extracted source for inspection
         if: always()
