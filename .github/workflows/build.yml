@@ -36,6 +36,15 @@ jobs:
           echo "Extracted Gradle project files:"
           find source -type f \( -name 'settings.gradle*' -o -name 'build.gradle*' -o -name 'gradlew' \) -print
 
+      - name: Upload extracted source for inspection
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ZERO-CLIENT-source-inspection
+          path: source/
+          if-no-files-found: error
+          retention-days: 3
+
       - name: Build with Gradle
         shell: bash
         run: |
