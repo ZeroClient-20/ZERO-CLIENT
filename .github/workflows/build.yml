@@ -24,12 +24,17 @@ jobs:
           distribution: temurin
           java-version: '17'
 
+      - name: Set up Gradle 8.12
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.12'
+
       - name: Extract source archive
         run: |
           mkdir -p source
           unzip -q ZERO-Client-1.8.9-LegacyFabric-source.zip -d source
-          echo "Extracted files:"
-          find source -maxdepth 3 -type f | head -100
+          echo "Extracted Gradle project files:"
+          find source -type f \( -name 'settings.gradle*' -o -name 'build.gradle*' -o -name 'gradlew' \) -print
 
       - name: Build with Gradle
         shell: bash
@@ -40,16 +45,21 @@ jobs:
             chmod +x "$WRAPPER"
             cd "$PROJECT_DIR"
             ./gradlew build --no-daemon
-          elif find source -type f -name build.gradle -o -name build.gradle.kts | grep -q .; then
-            sudo apt-get update
-            sudo apt-get install -y gradle
-            BUILD_FILE="$(find source -type f \( -name build.gradle -o -name build.gradle.kts \) -print -quit)"
-            cd "$(dirname "$BUILD_FILE")"
-            gradle build --no-daemon
           else
-            echo "No Gradle wrapper or build.gradle found in the source archive."
-            exit 1
+            BUILD_FILE="$(find source -type f \( -name build.gradle -o -name build.gradle.kts \) -print -quit)"
+            if [ -z "$BUILD_FILE" ]; then
+              echo "No Gradle build file found in the source archive."
+              exit 1
+            fi
+            cd "$(dirname "$BUILD_FILE")"
+            gradle --version
+            gradle build --no-daemon
           fi
+
+      - name: List generated JARs
+        if: success()
+        run: |
+          find source -type f -path '*/build/libs/*.jar' -print
 
       - name: Upload compiled JAR
         uses: actions/upload-artifact@v4
