@@ -4,7 +4,7 @@ import dev.zero.client.module.ModuleManager;
 import dev.zero.client.util.ZeroRuntime;
 import net.fabricmc.api.ClientModInitializer;
 
-/** Entry point for ZERO Client. */
+/** Entry point for ZERO Client on Legacy Fabric 1.8.9. */
 public final class ZeroClient implements ClientModInitializer {
     public static final String MOD_ID = "zero_client";
 
